@@ -18,7 +18,10 @@ fn main() -> Result<()> {
     let mut stdout = stdout();
     let mut x = 0;
     let mut last_space = false;
-    let mut indent = 0;
+    let mut last_indent = None;
+
+    let mut current_line = String::new();
+
     loop {
         let mut line = String::new();
         stdin.read_line(&mut line)?;
@@ -28,8 +31,7 @@ fn main() -> Result<()> {
         line = line.trim_right().into();
         line.push(' ');
         let mut chars = line.chars();
-        let last_indent = indent;
-        indent = 0;
+        let mut indent = 0;
         while let Some(next) = chars.as_str().chars().next() {
             if next.category() == UnicodeCategory::SpaceSeparator {
                 chars.next();
@@ -38,12 +40,13 @@ fn main() -> Result<()> {
                 break;
             }
         }
-        if last_indent != indent {
-            println!();
+        if indent != last_indent.unwrap_or(indent) {
+            println!("{}", current_line.trim_right());
+            current_line = String::new();
             x = 0;
         }
         while x < indent {
-            print!(" ");
+            current_line.push(' ');
             x += 1;
         }
 
@@ -61,9 +64,10 @@ fn main() -> Result<()> {
                 }
             }
             if x + word.len() >= width {
-                println!();
+                println!("{}", current_line.trim_right());
+                current_line = String::new();
                 for _ in 0..indent {
-                    print!(" ");
+                    current_line.push(' ');
                 }
                 last_space = true;
                 x = indent;
@@ -72,10 +76,12 @@ fn main() -> Result<()> {
                 continue;
             }
             x += word.len();
-            print!("{}", word);
+            current_line.push_str(&word);
             last_space = cat == UnicodeCategory::SpaceSeparator;
         }
+        last_indent = Some(indent);
     }
+    print!("{}", current_line);
     stdout.flush()?;
     Ok(())
 }
