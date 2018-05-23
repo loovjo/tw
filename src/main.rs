@@ -1,11 +1,19 @@
 extern crate ucd;
 use std::io::{stdin, stdout, Write, Result};
+use std::env::args;
 
 use ucd::{UnicodeCategory, Codepoint};
 
-const TERM_WIDTH: usize = 31;
+const DEFUALT_TERM_WIDTH: usize = 120;
 
 fn main() -> Result<()> {
+
+    let mut args = args();
+    args.next();
+
+    let width =
+        args.next().and_then(|x| x.trim().parse::<usize>().ok()).unwrap_or(DEFUALT_TERM_WIDTH);
+
     let stdin = stdin();
     let mut stdout = stdout();
     let mut x = 0;
@@ -52,7 +60,7 @@ fn main() -> Result<()> {
                     break;
                 }
             }
-            if x + word.len() >= TERM_WIDTH {
+            if x + word.len() >= width {
                 println!();
                 for _ in 0..indent {
                     print!(" ");
